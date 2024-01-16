@@ -1,15 +1,16 @@
 import * as yup from 'yup';
 import onChange from 'on-change';
+import i18n from 'i18next';
+import { setLocale } from 'yup';
 import render from './view.js';
-// import axios from 'axios';
+import resources from './locales/index.js';
 
 const app = () => {
   const initilState = {
     form: {
       currentLink: '',
-      isValid: true,
       status: 'filling',
-      errors: [],
+      error: null,
     },
     feeds: {
       addedUrl: [],
@@ -22,7 +23,28 @@ const app = () => {
     form: document.querySelector('form'),
     input: document.querySelector('#url-input'),
     buttonAddUrl: document.querySelector('button[type="submit"]'),
+    feedbackMessage: document.querySelector('.feedback'),
   };
+
+  const i18nInstance = i18n.createInstance();
+
+  i18nInstance
+    .init({
+      lng: 'ru',
+      debug: false,
+      resources,
+    })
+    .then(() => {
+      setLocale({
+        mixed: {
+          notOneOf: () => ({ key: 'urlIsAlreadyExist' }),
+        },
+        string: {
+          url: () => ({ key: 'invalidUrl' }),
+          matches: () => ({ key: 'urlWithoutRss' }),
+        },
+      });
+    });
 
   const validateLink = (url) => {
     const schema = yup
@@ -30,31 +52,31 @@ const app = () => {
       .trim()
       .url()
       .notOneOf(addedLinks)
+      .matches(/rss/i)
+      .required()
 
       .validate(url);
     return schema;
   };
 
-  const watchedState = onChange(initilState, render(initilState, elements));
+  const watchedState = onChange(initilState, render(initilState, elements, i18nInstance));
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
     watchedState.form.status = 'sending';
+
     const formData = new FormData(e.target);
     const currentUrl = formData.get('url');
-    initilState.form.errors = [];
+    initilState.form.error = null;
+
     validateLink(currentUrl)
       .then((valid) => {
         watchedState.feeds.addedUrl.push(valid);
         watchedState.form.status = 'sent';
-        console.log(watchedState.form.status);
       })
       .catch((error) => {
         watchedState.form.status = 'failed';
-        watchedState.form.errors.push(error.message);
-        watchedState.form.isValid = false;
-        console.log(error.message);
-        console.log(watchedState.form.status);
+        watchedState.form.error = error.message;
       });
   });
 };
