@@ -9,5 +9,8 @@ export default {
     urlIsAlreadyExist: 'RSS уже существует',
     invalidUrl: 'Ссылка должна быть валидным URL',
     urlWithoutRss: 'Ресурс не содержит валидный RSS',
+    networkError: 'Ошибка сети',
+    posts: 'Посты',
+    feeds: 'Фиды',
   },
 };
