@@ -72,16 +72,15 @@ const app = () => {
 
   const watchedState = onChange(initialState, render(initialState, elements, i18nInstance));
 
-  const fetchUrl = (link) =>
-    axios
-      .get(`https://allorigins.hexlet.app/get?url=${encodeURIComponent(link)}&disableCache=true`)
-      .then((response) => {
-        if (response.status === 200) {
-          return response.data;
-        }
-        return { error: 'Failed to fetch data' };
-      })
-      .then((data) => data.contents);
+  const fetchUrl = (link) => axios
+    .get(`https://allorigins.hexlet.app/get?url=${encodeURIComponent(link)}&disableCache=true`)
+    .then((response) => {
+      if (response.status === 200) {
+        return response.data;
+      }
+      return { error: 'Failed to fetch data' };
+    })
+    .then((data) => data.contents);
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
