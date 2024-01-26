@@ -5,4 +5,4 @@
 
 # RSS App:
 
-[RSS aggregator](https://frontend-project-11-swart-five.vercel.app/)
+[RSS aggregator](https://frontend-project-11-cmyjggu7p-polinas-projects-310771d2.vercel.app)
