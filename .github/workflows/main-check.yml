@@ -25,4 +25,4 @@ jobs:
         run: make lint
 
       - name: Publish
-      - run: make publish
+        run: make publish
