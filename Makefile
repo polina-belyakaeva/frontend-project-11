@@ -4,6 +4,9 @@ develop:
 install:
 	npm ci
 
+publish:
+	npm publish --dry-run
+
 build:
 	NODE_ENV=production npx webpack
 
