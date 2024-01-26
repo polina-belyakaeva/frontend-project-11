@@ -78,34 +78,50 @@ const renderFeeds = (state, elements, i18n) => {
 
 const handleStatus = (status, elements, i18n) => {
   const updatedElements = { ...elements };
-  if (status === 'filling') {
+
+  const enableFormInputs = () => {
     elements.buttonAddUrl.removeAttribute('disabled');
     elements.input.removeAttribute('disabled', true);
-  }
-  if (status === 'sending') {
+  };
+
+  const disableFormInputs = () => {
     elements.buttonAddUrl.setAttribute('disabled', true);
     elements.input.setAttribute('disabled', true);
     elements.input.classList.remove('is-invalid');
-  }
-  if (status === 'failed') {
-    elements.buttonAddUrl.removeAttribute('disabled');
-    elements.input.removeAttribute('disabled', true);
-    elements.input.classList.add('is-invalid');
-  }
-  if (status === 'sent') {
-    elements.buttonAddUrl.removeAttribute('disabled');
-    elements.input.removeAttribute('disabled', true);
-    elements.input.classList.remove('is-invalid');
-    elements.feedbackMessage.classList.remove('text-danger');
-    elements.feedbackMessage.classList.add('text-success');
-    updatedElements.feedbackMessage.textContent = i18n.t('successfulUrl');
+  };
 
-    elements.input.focus();
-    elements.form.reset();
+  switch (status) {
+    case 'filling':
+      enableFormInputs();
+      break;
+
+    case 'sending':
+      disableFormInputs();
+      break;
+
+    case 'failed':
+      enableFormInputs();
+      elements.input.classList.add('is-invalid');
+      break;
+
+    case 'sent':
+      enableFormInputs();
+      elements.input.classList.remove('is-invalid');
+      elements.feedbackMessage.classList.remove('text-danger');
+      elements.feedbackMessage.classList.add('text-success');
+      updatedElements.feedbackMessage.textContent = i18n.t('successfulUrl');
+
+      elements.input.focus();
+      elements.form.reset();
+      break;
+
+    default:
+      break;
   }
 
   return updatedElements;
 };
+
 
 const handleError = (errorType, elements, i18n) => {
   const updatedElements = { ...elements };
