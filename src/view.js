@@ -122,7 +122,6 @@ const handleStatus = (status, elements, i18n) => {
   return updatedElements;
 };
 
-
 const handleError = (errorType, elements, i18n) => {
   const updatedElements = { ...elements };
   elements.input.classList.add('is-invalid');

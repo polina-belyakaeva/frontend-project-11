@@ -19,7 +19,10 @@ jobs:
           cache: 'npm'
 
       - name: Install
-        run: npm install
+        run: make install
 
       - name: Run lint
         run: make lint
+
+      - name: Publish
+      - run: make publish
