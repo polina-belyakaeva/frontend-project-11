@@ -159,6 +159,10 @@ const render = (state, elements, i18n) => (path, value) => {
       renderFeeds(state, elements, i18n);
       break;
 
+    case 'content.postsItems':
+      renderPost(state, elements, i18n);
+      break;
+
     default:
       break;
   }

@@ -8,6 +8,68 @@ import render from './view.js';
 import resources from './locales/index.js';
 import parse from './parser.js';
 
+const parsePosts = (parsedData, watchedState) => {
+  const newPosts = Array.from(parsedData.querySelectorAll('item')).map((item) => {
+    const { textContent: link } = item.querySelector('link');
+    const { textContent: title } = item.querySelector('title');
+    const { textContent: description } = item.querySelector('description');
+    return { id: _.uniqueId(), link, title, description };
+  });
+
+  const uniqueNewPosts = newPosts.filter((newPost) => !watchedState.content.postsItems.some((existingPost) => existingPost.link === newPost.link));
+
+  watchedState.content.postsItems.push(...uniqueNewPosts);
+
+  return uniqueNewPosts;
+};
+
+const updateRssFlow = (watchedState) => {
+  Promise.allSettled(
+    watchedState.feeds.addedUrl.map((url) => {
+      return fetchUrl(url)
+        .then((response) => parse(response))
+        .then((parsedData) => {
+          const newPosts = parsePosts(parsedData, watchedState);
+
+          return watchedState;
+        })
+        .catch((error) => {
+          console.error('Error fetching or parsing data:', error);
+
+          return watchedState;
+        });
+    })
+  ).then((results) => {
+    results.forEach((result) => {
+      if (result.status === 'rejected') {
+        console.error('Error checking for new posts:', result.reason);
+      }
+    });
+  });
+};
+
+const updatePostsRegularly = (watchedState) => {
+  const updateInterval = 5000;
+  const update = () => {
+    updateRssFlow(watchedState);
+    setTimeout(update, updateInterval);
+  };
+
+  update();
+};
+
+const fetchUrl = (link) =>
+  axios
+    .get(`https://allorigins.hexlet.app/get?url=${encodeURIComponent(link)}&disableCache=true`)
+    .then((response) => {
+      if (response.status === 200) {
+        return response.data;
+      }
+
+      return { error: 'Failed to fetch data' };
+    })
+    .then((data) => data.contents);
+
 const app = () => {
   const initialState = {
     form: {
@@ -67,20 +129,11 @@ const app = () => {
       .required()
 
       .validate(url);
+
     return schema;
   };
 
   const watchedState = onChange(initialState, render(initialState, elements, i18nInstance));
-
-  const fetchUrl = (link) => axios
-    .get(`https://allorigins.hexlet.app/get?url=${encodeURIComponent(link)}&disableCache=true`)
-    .then((response) => {
-      if (response.status === 200) {
-        return response.data;
-      }
-      return { error: 'Failed to fetch data' };
-    })
-    .then((data) => data.contents);
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -100,21 +153,7 @@ const app = () => {
         return parsedData;
       })
       .then((doc) => {
-        const postsItemsData = Array.from(doc.querySelectorAll('item'));
-        postsItemsData.map((item) => {
-          const postLink = item.querySelector('link');
-          const postTitle = item.querySelector('title');
-          const postDescription = item.querySelector('description');
-
-          watchedState.content.postsItems.push({
-            id: _.uniqueId(),
-            link: postLink.textContent,
-            title: postTitle.textContent,
-            description: postDescription.textContent,
-          });
-
-          return watchedState.content.postsItems;
-        });
+        parsePosts(doc, watchedState);
 
         const feedsTitlesData = doc.querySelector('title');
         const feedsDescription = doc.querySelector('description');
@@ -139,5 +178,6 @@ const app = () => {
         }
       });
   });
+  updatePostsRegularly(watchedState);
 };
 export default app;
