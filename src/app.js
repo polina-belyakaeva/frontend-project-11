@@ -13,10 +13,15 @@ const parsePosts = (parsedData, watchedState) => {
     const { textContent: link } = item.querySelector('link');
     const { textContent: title } = item.querySelector('title');
     const { textContent: description } = item.querySelector('description');
+
     return { id: _.uniqueId(), link, title, description };
   });
 
-  const uniqueNewPosts = newPosts.filter((newPost) => !watchedState.content.postsItems.some((existingPost) => existingPost.link === newPost.link));
+  const uniqueNewPosts = newPosts.filter((newPost) => {
+    return !watchedState.content.postsItems.some((existingPost) => {
+      return existingPost.link === newPost.link;
+    });
+  });
 
   watchedState.content.postsItems.push(...uniqueNewPosts);
 
@@ -25,11 +30,11 @@ const parsePosts = (parsedData, watchedState) => {
 
 const updateRssFlow = (watchedState) => {
   Promise.allSettled(
-    watchedState.feeds.addedUrl.map((url) => {
-      return fetchUrl(url)
+    watchedState.feeds.addedUrl.map((url) =>
+      fetchUrl(url)
         .then((response) => parse(response))
         .then((parsedData) => {
-          const newPosts = parsePosts(parsedData, watchedState);
+          parsePosts(parsedData, watchedState);
 
           return watchedState;
         })
@@ -37,8 +42,8 @@ const updateRssFlow = (watchedState) => {
           console.error('Error fetching or parsing data:', error);
 
           return watchedState;
-        });
-    })
+        })
+    )
   ).then((results) => {
     results.forEach((result) => {
       if (result.status === 'rejected') {
@@ -58,8 +63,7 @@ const updatePostsRegularly = (watchedState) => {
   update();
 };
 
-const fetchUrl = (link) =>
-  axios
+const fetchUrl = (link) => axios
     .get(`https://allorigins.hexlet.app/get?url=${encodeURIComponent(link)}&disableCache=true`)
     .then((response) => {
       if (response.status === 200) {
