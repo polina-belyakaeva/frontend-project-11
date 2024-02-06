@@ -87,7 +87,20 @@ const updatePostsRegularly = (watchedState) => {
   update();
 };
 
-const app = () => {
+const elements = {
+  body: document.querySelector('body'),
+  form: document.querySelector('form'),
+  input: document.querySelector('#url-input'),
+  buttonAddUrl: document.querySelector('button[type="submit"]'),
+  feedbackMessage: document.querySelector('.feedback'),
+  postsContainer: document.querySelector('.posts'),
+  feedsContainer: document.querySelector('.feeds'),
+  modalTitle: document.querySelector('.modal-title'),
+  modalDescription: document.querySelector('.text-break'),
+  modalReadFullArticle: document.querySelector('.full-article'),
+};
+
+export default () => {
   const initialState = {
     form: {
       currentLink: '',
@@ -110,23 +123,7 @@ const app = () => {
     networkError: null,
   };
 
-  const addedLinks = initialState.feeds.addedUrl;
-
-  const elements = {
-    body: document.querySelector('body'),
-    form: document.querySelector('form'),
-    input: document.querySelector('#url-input'),
-    buttonAddUrl: document.querySelector('button[type="submit"]'),
-    feedbackMessage: document.querySelector('.feedback'),
-    postsContainer: document.querySelector('.posts'),
-    feedsContainer: document.querySelector('.feeds'),
-    modalTitle: document.querySelector('.modal-title'),
-    modalDescription: document.querySelector('.text-break'),
-    modalReadFullArticle: document.querySelector('.full-article'),
-  };
-
   const i18nInstance = i18n.createInstance();
-
   i18nInstance
     .init({
       lng: 'ru',
@@ -150,7 +147,7 @@ const app = () => {
       .string()
       .trim()
       .url()
-      .notOneOf(addedLinks)
+      .notOneOf(initialState.feeds.addedUrl)
       .matches(/\b(rss|feed)\b/i)
       .required()
 
@@ -165,7 +162,6 @@ const app = () => {
     const clickEl = event.target;
     const { id } = clickEl.dataset;
     watchedState.uiState.visitedPostsId.add(id);
-
     if (clickEl.tagName === 'BUTTON') {
       watchedState.uiState.activePostId = id;
       watchedState.uiState.modalMode = 'visible';
@@ -175,13 +171,11 @@ const app = () => {
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-
     const formData = new FormData(e.target);
     const currentUrl = formData.get('url');
     initialState.form.error = null;
     watchedState.feeds.succesed = null;
     watchedState.form.status = 'sending';
-
     validateLink(currentUrl)
       .then((validLink) => fetchUrl(validLink))
       .then((response) => {
@@ -193,7 +187,6 @@ const app = () => {
       .then((parsedData) => {
         parsePosts(parsedData, watchedState);
         parseFeed(parsedData, watchedState);
-
         watchedState.form.status = 'sent';
         watchedState.feeds.succesed = true;
       })
@@ -211,4 +204,3 @@ const app = () => {
 
   updatePostsRegularly(watchedState);
 };
-export default app;

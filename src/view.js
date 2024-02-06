@@ -114,7 +114,6 @@ const renderModal = (state, elements) => {
 
 const handleStatus = (status, elements, i18n) => {
   const updatedElements = { ...elements };
-
   const enableFormInputs = () => {
     elements.buttonAddUrl.removeAttribute('disabled');
     elements.input.removeAttribute('disabled', true);
