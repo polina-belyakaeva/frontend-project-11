@@ -128,16 +128,15 @@ const handleStatus = (status, elements, i18n) => {
 
   switch (status) {
     case 'filling':
+    case 'failed':
       enableFormInputs();
+      if (status === 'failed') {
+        elements.input.classList.add('is-invalid');
+      }
       break;
 
     case 'sending':
       disableFormInputs();
-      break;
-
-    case 'failed':
-      enableFormInputs();
-      elements.input.classList.add('is-invalid');
       break;
 
     case 'sent':
@@ -146,7 +145,6 @@ const handleStatus = (status, elements, i18n) => {
       elements.feedbackMessage.classList.remove('text-danger');
       elements.feedbackMessage.classList.add('text-success');
       updatedElements.feedbackMessage.textContent = i18n.t('successfulUrl');
-
       elements.input.focus();
       elements.form.reset();
       break;
