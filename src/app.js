@@ -1,3 +1,5 @@
+import './styles.scss';
+import 'bootstrap';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import i18n from 'i18next';
@@ -33,11 +35,22 @@ const parsePosts = (parsedData, watchedState) => {
     };
   });
 
-  const uniqueNewPosts = newPosts.filter((newPost) => watchedState.content.postsItems.some((existingPost) => existingPost.link === newPost.link));
+  const uniqueNewPosts = newPosts.filter((newPost) => !watchedState.content.postsItems.some((existingPost) => existingPost.link === newPost.link));
 
   watchedState.content.postsItems.push(...uniqueNewPosts);
 
   return uniqueNewPosts;
+};
+
+const parseFeed = (parsedData, watchedState) => {
+  const { textContent: title } = parsedData.querySelector('title');
+  const { textContent: description } = parsedData.querySelector('description');
+
+  return watchedState.content.feedsContent.push({
+    id: _.uniqueId(),
+    title,
+    description,
+  });
 };
 
 const updateRssFlow = (watchedState) => {
@@ -60,6 +73,7 @@ const updateRssFlow = (watchedState) => {
         console.error('Error checking for new posts:', result.reason);
       }
     });
+    return watchedState;
   });
 };
 
@@ -88,18 +102,27 @@ const app = () => {
       postsItems: [],
       feedsContent: [],
     },
+    uiState: {
+      visitedPostsId: new Set(),
+      activePostId: '',
+      modalMode: 'hidden',
+    },
     networkError: null,
   };
 
   const addedLinks = initialState.feeds.addedUrl;
 
   const elements = {
+    body: document.querySelector('body'),
     form: document.querySelector('form'),
     input: document.querySelector('#url-input'),
     buttonAddUrl: document.querySelector('button[type="submit"]'),
     feedbackMessage: document.querySelector('.feedback'),
     postsContainer: document.querySelector('.posts'),
     feedsContainer: document.querySelector('.feeds'),
+    modalTitle: document.querySelector('.modal-title'),
+    modalDescription: document.querySelector('.text-break'),
+    modalReadFullArticle: document.querySelector('.full-article'),
   };
 
   const i18nInstance = i18n.createInstance();
@@ -138,6 +161,18 @@ const app = () => {
 
   const watchedState = onChange(initialState, render(initialState, elements, i18nInstance));
 
+  elements.postsContainer.addEventListener('click', (event) => {
+    const clickEl = event.target;
+    const { id } = clickEl.dataset;
+    watchedState.uiState.visitedPostsId.add(id);
+
+    if (clickEl.tagName === 'BUTTON') {
+      watchedState.uiState.activePostId = id;
+      watchedState.uiState.modalMode = 'visible';
+    }
+    watchedState.uiState.modalMode = 'hidden';
+  });
+
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -155,17 +190,9 @@ const app = () => {
 
         return parsedData;
       })
-      .then((doc) => {
-        parsePosts(doc, watchedState);
-
-        const feedsTitlesData = doc.querySelector('title');
-        const feedsDescription = doc.querySelector('description');
-
-        watchedState.content.feedsContent.push({
-          id: _.uniqueId(),
-          title: feedsTitlesData.textContent,
-          description: feedsDescription.textContent,
-        });
+      .then((parsedData) => {
+        parsePosts(parsedData, watchedState);
+        parseFeed(parsedData, watchedState);
 
         watchedState.form.status = 'sent';
         watchedState.feeds.succesed = true;
@@ -181,6 +208,7 @@ const app = () => {
         }
       });
   });
+
   updatePostsRegularly(watchedState);
 };
 export default app;

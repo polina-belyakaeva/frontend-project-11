@@ -12,5 +12,6 @@ export default {
     networkError: 'Ошибка сети',
     posts: 'Посты',
     feeds: 'Фиды',
+    viewing: 'Просмотр',
   },
 };
