@@ -56,7 +56,7 @@ const renderPost = (state, elements, i18n) => {
   state.content.postsItems.map((post) => {
     const liPosts = createElement('li', ['list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0']);
 
-    const postLink = createLink(post, state, 'fw-bold');
+    const postLink = createLink(post, state, ['fw-bold']);
 
     const viewingButton = createButton(['btn', 'btn-outline-primary', 'btn-sm'], post.id, i18n.t('viewing'));
     liPosts.appendChild(postLink);
