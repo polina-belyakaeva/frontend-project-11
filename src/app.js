@@ -33,12 +33,12 @@ const parsePosts = (parsedData, watchedState) => {
     };
   });
 
-  const uniqueNewPosts = newPosts.filter((newPost) => {
-    return !watchedState.content.postsItems.some((existingPost) => {
-      return existingPost.link === newPost.link;
-    });
-  });
-  
+  const postItems = watchedState.content.postsItems;
+
+  const uniqueNewPosts = newPosts.filter((newPost) => (
+    !postItems.some((existingPost) => existingPost.link === newPost.link)
+  ));
+
   watchedState.content.postsItems.push(...uniqueNewPosts);
 
   return uniqueNewPosts;
