@@ -106,6 +106,7 @@ const renderModal = (state, elements) => {
   const currentPost = posts.find((post) => postId === post.id);
 
   if (currentPost) {
+    console.log('currentPost modal');
     modalTitle.textContent = currentPost.title;
     modalDescription.textContent = currentPost.description;
     modalReadFullArticle.href = currentPost.link;
@@ -159,7 +160,14 @@ const handleError = (errorType, elements, i18n) => {
   const updatedElements = { ...elements };
   elements.input.classList.add('is-invalid');
   elements.feedbackMessage.classList.add('text-danger');
-  updatedElements.feedbackMessage.textContent = i18n.t(errorType.key);
+  let errorMessage = '';
+  if (i18n.exists(errorType.key)) {
+    errorMessage = i18n.t(errorType.key);
+  } else {
+    errorMessage = i18n.t('unknownError');
+  }
+
+  updatedElements.feedbackMessage.textContent = errorMessage;
 
   return updatedElements;
 };

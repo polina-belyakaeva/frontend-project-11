@@ -1,7 +1,6 @@
 import * as yup from 'yup';
 import onChange from 'on-change';
 import i18n from 'i18next';
-import _ from 'lodash';
 import { setLocale } from 'yup';
 import axios from 'axios';
 import render from './view.js';
@@ -19,50 +18,11 @@ const fetchUrl = (link) => axios
   })
   .then((data) => data.contents);
 
-const parsePosts = (parsedData, watchedState) => {
-  const newPosts = Array.from(parsedData.querySelectorAll('item')).map((item) => {
-    const { textContent: link } = item.querySelector('link');
-    const { textContent: title } = item.querySelector('title');
-    const { textContent: description } = item.querySelector('description');
-
-    return {
-      id: _.uniqueId(),
-      link,
-      title,
-      description,
-    };
-  });
-
-  const postItems = watchedState.content.postsItems;
-
-  const uniqueNewPosts = newPosts.filter((newPost) => (
-    !postItems.some((existingPost) => existingPost.link === newPost.link)
-  ));
-
-  watchedState.content.postsItems.push(...uniqueNewPosts);
-
-  return uniqueNewPosts;
-};
-
-const parseFeed = (parsedData, watchedState) => {
-  const { textContent: title } = parsedData.querySelector('title');
-  const { textContent: description } = parsedData.querySelector('description');
-
-  return watchedState.content.feedsContent.push({
-    id: _.uniqueId(),
-    title,
-    description,
-  });
-};
-
 const updateRssFlow = (watchedState) => {
   Promise.allSettled(
     watchedState.feeds.addedUrl.map((url) => fetchUrl(url)
-      .then((response) => parse(response))
-      .then((parsedData) => {
-        parsePosts(parsedData, watchedState);
-
-        return watchedState;
+      .then((response) => {
+        parse(response, watchedState);
       })
       .catch((error) => {
         console.error('Error fetching or parsing data:', error);
@@ -181,14 +141,8 @@ export default () => {
     validateLink(currentUrl)
       .then((validLink) => fetchUrl(validLink))
       .then((response) => {
-        const parsedData = parse(response);
+        parse(response, watchedState);
         watchedState.feeds.addedUrl.push(currentUrl);
-
-        return parsedData;
-      })
-      .then((parsedData) => {
-        parsePosts(parsedData, watchedState);
-        parseFeed(parsedData, watchedState);
         watchedState.form.status = 'sent';
         watchedState.feeds.succesed = true;
       })
